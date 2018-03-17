@@ -1,3 +1,23 @@
+/*
+ * следует написать структуру данных, обрабатывающую команды push* и pop*.
+ * Формат входных данных.
+ * В первой строке количество команд n. n ≤ 1000000.
+ * Каждая команда задаётся как 2 целых числа: a b.
+ * a = 1 - push front
+ * a = 2 - pop front
+ * a = 3 - push back
+ * a = 4 - pop back
+ * Команды добавления элемента 1 и 3 заданы с неотрицательным параметром b.
+ * Для очереди используются команды 2 и 3. Для дека используются все четыре команды.
+ * Если дана команда pop*, то число b - ожидаемое значение. Если команда pop вызвана для пустой структуры данных,
+ * то ожидается “-1”.
+ * Формат выходных данных.
+ * Требуется напечатать YES - если все ожидаемые значения совпали.
+ * Иначе, если хотя бы одно ожидание не оправдалось, то напечатать NO.
+ *
+ * Реализовать очередь с помощью двух стеков. Использовать стек, реализованный с помощью динамического буфера.
+ */
+
 #include <iostream>
 #include <assert.h>
 
@@ -5,7 +25,7 @@ class Stack {
 public:
     Stack();
     ~Stack();
-    void Push(int value);
+    void Push( int value );
     int Pop();
     bool IsEmpty();
     void resize();
@@ -17,7 +37,6 @@ private:
 
 class CQueue {
 public:
-//    CQueue();
     void PushBack(int value);
     int PopFront();
     bool IsEmpty();
@@ -26,19 +45,19 @@ private:
     Stack outputStack;
 };
 
-//===========================================================//
-//                          MAIN_START
-//===========================================================//
 
-int main() {
+//================================================================================//
+
+int main()
+{
     CQueue queue;
     int countOfCommands = 0;
     std::cin >> countOfCommands;
-    for (int i = 0; i < countOfCommands; ++i) {
+    for( int i = 0; i < countOfCommands; ++i ) {
         int command = 0;
         int value = 0;
         std::cin >> command >> value;
-        switch (command) {
+        switch( command) {
             case 2:
                 if( queue.IsEmpty() && value != -1 || !queue.IsEmpty() && queue.PopFront() != value ) {
                     std::cout << "NO";
@@ -46,31 +65,33 @@ int main() {
                 }
                 break;
             case 3:
-                queue.PushBack(value);
+                queue.PushBack( value );
                 break;
             default:
-                assert(false);
+//                assert( false );
+                break;
         }
     }
     std::cout << "YES";
     return 0;
 }
 
-//===========================================================//
-//                          MAIN_END
-//===========================================================//
+//================================================================================//
 
 
-Stack::Stack() : size(0), capacity(2) {
+Stack::Stack() : size(0), capacity(2)
+{
     data = new int[capacity];
 }
 
-Stack::~Stack() {
+Stack::~Stack()
+{
     delete[] data;
 }
 
-void Stack::Push(int value) {
-    if (size + 1 >= capacity) {
+void Stack::Push(int value)
+{
+    if( size + 1 >= capacity ) {
         resize();
         data[size++] = value;
     } else {
@@ -78,40 +99,46 @@ void Stack::Push(int value) {
     }
 }
 
-bool Stack::IsEmpty() {
+bool Stack::IsEmpty()
+{
     return size == 0;
 }
 
-int Stack::Pop() {
-    if (!IsEmpty()) {
+int Stack::Pop()
+{
+    if( !IsEmpty() ) {
         return data[--size];
     }
     return -1;
 }
 
-void Stack::resize() {
+void Stack::resize()
+{
     int* newData = new int[capacity + capacity / 2];
     capacity += capacity / 2;
-    for (int i = 0; i < size; ++i) {
+    for( int i = 0; i < size; ++i ) {
         newData[i] = data[i];
     }
     delete[] data;
     data = newData;
 }
 
-void CQueue::PushBack(int value) {
-    inputStack.Push(value);
+void CQueue::PushBack( int value )
+{
+    inputStack.Push( value );
 }
 
-int CQueue::PopFront() {
-    if (outputStack.IsEmpty()) {
-        while (!inputStack.IsEmpty()) {
-            outputStack.Push(inputStack.Pop());
+int CQueue::PopFront()
+{
+    if( outputStack.IsEmpty() ) {
+        while( !inputStack.IsEmpty() ) {
+            outputStack.Push( inputStack.Pop() );
         }
     }
     return outputStack.Pop();
 }
 
-bool CQueue::IsEmpty() {
+bool CQueue::IsEmpty()
+{
     return inputStack.IsEmpty() && outputStack.IsEmpty();
 }
