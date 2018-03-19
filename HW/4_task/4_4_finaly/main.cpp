@@ -1,4 +1,6 @@
-/*
+// Автор: Ильнур Гатауллин
+/* Описание:
+ *
  * Дан массив натуральных чисел A[0..n), n не превосходит 100 000.
  * Так же задан размер некотрого окна (последовательно расположенных элементов массива)
  * в этом массиве k, k<=n. Требуется для каждого положения окна (от 0 и до n-k) вывести
@@ -17,6 +19,7 @@ struct Node {
         index = 0;
     }
 };
+
 bool operator < (const Node& node1, const Node& node2)
 {
     return node1.value < node2.value;
@@ -29,14 +32,21 @@ public:
     CHeap();
     explicit CHeap( int heapCapacity );
     ~CHeap();
-    void FillHeap( T* element );  // Добавление элемента в кучу без востановления свойств кучи
+    // Добавление элемента в кучу без восстановления свойств кучи
+    void FillHeap( T* element );
+    // Добавление элемента в кучу с восстановлением свойства кучи
     void AddElementToHeap( T* element );
+    // Постройка кучи
     void BuildHeap();
+    // Возвращает верхний элемент кучи
     T* GetTop() const;
+    // Удаляет верхний элемент и восстанавливает свойство кучи
     void DeleteTop();
 
 private:
+    // Спускает элемент, который меньше дочерних
     void siftUp(int index);
+    // Поднимает элемент, который больше родительского
     void siftDown( int index );
 
     int heapCapacity;
@@ -63,18 +73,19 @@ int main()
         heap.FillHeap( &temp );
     }
     heap.BuildHeap();
-
+    // Количество выведенных максимумов
     int counter = 0;
     int ind = windowSize;
-//    Node* res = heap.GetTop();
     while( counter != arraySize - windowSize + 1 ) {
         Node* res = heap.GetTop();
+        // удаляем максимальный элемент, пока его индекс не окажется в пределах окна
         while( res->index <= ind - windowSize - 1 ) {
             heap.DeleteTop();
             res = heap.GetTop();
         }
         std::cout << res->value << " ";
         ++counter;
+        // Добавление нового элемента в кучу при смещении окна
         if( ind < arraySize ) {
             temp.value = unsortedArray[ind];
             temp.index = ind;
@@ -109,6 +120,8 @@ void CHeap<T>::FillHeap( T* element )
         heap[heapSize++] = *element;
     }
 }
+
+// Проталкивание элемента вниз
 template <class T>
 void CHeap<T>::siftDown( int index ) {
     int ind = index;
@@ -117,14 +130,14 @@ void CHeap<T>::siftDown( int index ) {
         int rightChildIndex = ind * 2 + 2;
 
         int largestElemIndex = ind;
-
+        // Ищем большего сына, если такой есть
         if( leftChildIndex < heapSize && heap[ind] < heap[leftChildIndex] ) {
             largestElemIndex = leftChildIndex;
         }
         if( rightChildIndex < heapSize && heap[largestElemIndex] < heap[rightChildIndex] ) {
             largestElemIndex = rightChildIndex;
         }
-
+        // Если больший сын есть, то проталкиваем корень в него
         if( largestElemIndex != ind ) {
             std::swap( heap[ind], heap[largestElemIndex] );
             ind = largestElemIndex;
@@ -134,6 +147,7 @@ void CHeap<T>::siftDown( int index ) {
     }
 }
 
+// Проталкивание элемента наверх
 template <class T>
 void CHeap<T>::siftUp( int index )
 {
@@ -149,6 +163,7 @@ void CHeap<T>::siftUp( int index )
     }
 }
 
+// Построение кучи
 template <class T>
 void CHeap<T>::BuildHeap()
 {
@@ -156,12 +171,15 @@ void CHeap<T>::BuildHeap()
         siftDown( i );
     }
 }
+
+// Возвращает верхний элемент кучи
 template <class T>
 T* CHeap<T>::GetTop() const
 {
     return &heap[0];
 }
 
+// Удаление верхнего элемента и восстанавление свойства кучи
 template <class T>
 void CHeap<T>::DeleteTop()
 {
@@ -169,6 +187,7 @@ void CHeap<T>::DeleteTop()
     siftDown( 0 );
 }
 
+// Добавление элемента в кучу с восстановлением свойства кучи
 template <class T>
 void CHeap<T>::AddElementToHeap( T* element )
 {
