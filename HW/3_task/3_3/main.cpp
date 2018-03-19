@@ -27,9 +27,10 @@ public:
     ~Stack();
     void Push( int value );
     int Pop();
-    bool IsEmpty();
-    void resize();
+    bool IsEmpty() const;
+
 private:
+    void resize();
     int* data;
     int size;
     int capacity;
@@ -39,7 +40,7 @@ class CQueue {
 public:
     void PushBack(int value);
     int PopFront();
-    bool IsEmpty();
+    bool IsEmpty() const;
 private:
     Stack inputStack;
     Stack outputStack;
@@ -91,25 +92,21 @@ Stack::~Stack()
 
 void Stack::Push(int value)
 {
-    if( size + 1 >= capacity ) {
+    if( size >= capacity ) {
         resize();
-        data[size++] = value;
-    } else {
-        data[size++] = value;
     }
+    data[size++] = value;
 }
 
-bool Stack::IsEmpty()
+bool Stack::IsEmpty() const
 {
     return size == 0;
 }
 
 int Stack::Pop()
 {
-    if( !IsEmpty() ) {
-        return data[--size];
-    }
-    return -1;
+    assert(!IsEmpty());
+    return data[--size];
 }
 
 void Stack::resize()
@@ -138,7 +135,7 @@ int CQueue::PopFront()
     return outputStack.Pop();
 }
 
-bool CQueue::IsEmpty()
+bool CQueue::IsEmpty() const
 {
     return inputStack.IsEmpty() && outputStack.IsEmpty();
 }
