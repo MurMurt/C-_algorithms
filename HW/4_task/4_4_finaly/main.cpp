@@ -11,34 +11,44 @@
 struct Node {
     int value;
     int index;
+    Node()
+    {
+        value = 0;
+        index = 0;
+    }
 };
+bool operator < (const Node& node1, const Node& node2)
+{
+    return node1.value < node2.value;
+}
 
+template <class T>
 class CHeap
 {
 public:
     CHeap();
     explicit CHeap( int heapCapacity );
     ~CHeap();
-    void FillHeap( int value );
-    void AddElementToHeap( int value );
+    void FillHeap( T* element );  // Добавление элемента в кучу без востановления свойств кучи
+    void AddElementToHeap( T* element );
     void BuildHeap();
-    Node* GetTop();
+    T* GetTop() const;
     void DeleteTop();
+
 private:
     void siftUp(int index);
     void siftDown( int index );
 
     int heapCapacity;
     int heapSize;
-    int lastValueIndex;
-    Node* heap;
+    T* heap;
 };
 
 int main()
 {
     int arraySize = 0;
     std::cin >> arraySize;
-    CHeap heap = CHeap( arraySize );
+    CHeap <Node> heap = CHeap <Node>( arraySize );
 
     int* unsortedArray = new int[arraySize];
     for( int i = 0; i < arraySize; ++i ) {
@@ -46,13 +56,17 @@ int main()
     }
     int windowSize = 0;
     std::cin >> windowSize;
+    Node temp;
     for( int i = 0; i < windowSize; ++i ) {
-        heap.FillHeap( unsortedArray[i] );
+        temp.value = unsortedArray[i];
+        temp.index = i;
+        heap.FillHeap( &temp );
     }
     heap.BuildHeap();
 
     int counter = 0;
     int ind = windowSize;
+//    Node* res = heap.GetTop();
     while( counter != arraySize - windowSize + 1 ) {
         Node* res = heap.GetTop();
         while( res->index <= ind - windowSize - 1 ) {
@@ -62,37 +76,41 @@ int main()
         std::cout << res->value << " ";
         ++counter;
         if( ind < arraySize ) {
-            heap.AddElementToHeap( unsortedArray[ind] );
+            temp.value = unsortedArray[ind];
+            temp.index = ind;
+            heap.AddElementToHeap( &temp );
         }
         ++ind;
     }
     delete[] unsortedArray;
 }
 
-
-CHeap::CHeap():heapCapacity( 0 ), heapSize( 0 ), lastValueIndex( 0 ), heap( nullptr )
+template <class T>
+CHeap<T>::CHeap():heapCapacity( 0 ), heapSize( 0 ), heap( nullptr )
 {
 }
 
-CHeap::CHeap( int heapCapacity ): heapCapacity( heapCapacity ), heapSize( 0 ), lastValueIndex( 0 )
+template <class T>
+CHeap<T>::CHeap( int heapCapacity ): heapCapacity( heapCapacity ), heapSize( 0 )
 {
-    heap = new Node[heapCapacity];
+    heap = new T[heapCapacity];
 }
 
-CHeap::~CHeap()
+template <class T>
+CHeap<T>::~CHeap()
 {
     delete[] heap;
 }
 
-void CHeap::FillHeap( int value )
+template <class T>
+void CHeap<T>::FillHeap( T* element )
 {
     if( heapSize < heapCapacity ) {
-        heap[heapSize].value = value;
-        heap[heapSize++].index = lastValueIndex++;
+        heap[heapSize++] = *element;
     }
 }
-
-void CHeap::siftDown( int index ) {
+template <class T>
+void CHeap<T>::siftDown( int index ) {
     int ind = index;
     while( true ) {
         int leftChildIndex = ind * 2 + 1;
@@ -100,10 +118,10 @@ void CHeap::siftDown( int index ) {
 
         int largestElemIndex = ind;
 
-        if( leftChildIndex < heapSize && heap[leftChildIndex].value > heap[ind].value ) {
+        if( leftChildIndex < heapSize && heap[ind] < heap[leftChildIndex] ) {
             largestElemIndex = leftChildIndex;
         }
-        if( rightChildIndex < heapSize && heap[rightChildIndex].value > heap[largestElemIndex].value ) {
+        if( rightChildIndex < heapSize && heap[largestElemIndex] < heap[rightChildIndex] ) {
             largestElemIndex = rightChildIndex;
         }
 
@@ -116,12 +134,14 @@ void CHeap::siftDown( int index ) {
     }
 }
 
-void CHeap::siftUp( int index )
+template <class T>
+void CHeap<T>::siftUp( int index )
 {
     int child = index;
     while( child > 0 ) {
         int parent = ( child - 1 ) / 2;
-        if( heap[child].value <= heap[parent].value ) {
+        // a <= b  -->  !(b < a)
+        if( !( heap[parent] < heap[child] ) ) {
             return;
         }
         std::swap(heap[child], heap[parent]);
@@ -129,30 +149,31 @@ void CHeap::siftUp( int index )
     }
 }
 
-void CHeap::BuildHeap()
+template <class T>
+void CHeap<T>::BuildHeap()
 {
     for( int i = heapSize / 2 - 1; i >= 0; --i ) {
         siftDown( i );
     }
 }
-
-Node* CHeap::GetTop()
+template <class T>
+T* CHeap<T>::GetTop() const
 {
-    Node res = heap[0];
     return &heap[0];
 }
 
-void CHeap::DeleteTop()
+template <class T>
+void CHeap<T>::DeleteTop()
 {
     heap[0] = heap[--heapSize];
     siftDown( 0 );
 }
 
-void CHeap::AddElementToHeap( int value )
+template <class T>
+void CHeap<T>::AddElementToHeap( T* element )
 {
     if( heapSize < heapCapacity ) {
-        heap[heapSize].value = value;
-        heap[heapSize].index = lastValueIndex++;
+        heap[heapSize] = *element;
         siftUp( heapSize++ );
     }
 }
