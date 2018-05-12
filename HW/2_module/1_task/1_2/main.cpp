@@ -9,16 +9,20 @@
 
 struct TableElement {
     bool isDeleted;
+    bool isEmpty;
     std::string data;
+    TableElement(): data( "" ), isDeleted( false ), isEmpty( true )
+    {
+    };
 
-    TableElement( const std::string& str ): data( str ), isDeleted( false )
+    TableElement( const std::string& str ): data( str ), isDeleted( false ), isEmpty( false )
     {
     };
 };
 
 class HashTable {
 public:
-    HashTable(): capacity( INIT_SIZE ), elementsCount( 0 ), hashTable( INIT_SIZE, nullptr )
+    HashTable(): capacity( INIT_SIZE ), elementsCount( 0 ), hashTable( INIT_SIZE )
     {
     };
     ~HashTable();
@@ -31,10 +35,11 @@ public:
 private:
     const size_t INIT_SIZE = 8;
     const size_t A_COEFFICIENT = 47;
+    const size_t B_COEFFICIENT = 59;
     const double ALPHA = 0.75; // Предел коэффициента заполнения хеш таблицы
     size_t capacity;
     size_t elementsCount;
-    std::vector<TableElement*> hashTable;
+    std::vector<TableElement> hashTable;
 
     size_t hash1( const std::string& str, size_t M );
     size_t hash2( const std::string& str, size_t M );
@@ -68,11 +73,6 @@ int main() {
 
 HashTable::~HashTable()
 {
-    for( int i = 0; i < capacity; ++i ) {
-        if( hashTable[i] != nullptr ) {
-            delete hashTable[i];
-        }
-    }
 }
 
 size_t HashTable::hash1( const std::string &str, size_t M )
@@ -86,7 +86,11 @@ size_t HashTable::hash1( const std::string &str, size_t M )
 
 size_t HashTable::hash2( const std::string &str, size_t M )
 {
-    return ( 2 * hash1( str, M ) + 1 ) % M;
+    size_t hash = 0;
+    for( int i = 0; i < str.size(); ++i ) {
+        hash = ( hash * B_COEFFICIENT + str[i] ) % M;
+    }
+    return ( 2 * hash + 1 ) % M;
 }
 
 bool HashTable::Add( const std::string& str )
@@ -101,13 +105,13 @@ bool HashTable::Add( const std::string& str )
     int firstDeletedIndex = -1;  // Индекс первого удаленного элемента
 
     int i = 0;
-    while( hashTable[hashValue] != nullptr && i < capacity ) {
+    while( !hashTable[hashValue].isEmpty && i < capacity ) {
         // Проверка на совпадение
-        if( hashTable[hashValue]->data == str && !hashTable[hashValue]->isDeleted ) {
+        if( hashTable[hashValue].data == str && !hashTable[hashValue].isDeleted ) {
             return false;
         }
         // Нахождение первого удаленного элемента
-        if( hashTable[hashValue]->isDeleted && firstDeletedIndex < 0 ) {
+        if( hashTable[hashValue].isDeleted && firstDeletedIndex < 0 ) {
             firstDeletedIndex = hashValue;
         }
         //Вычисление нового значения хеша
@@ -116,11 +120,12 @@ bool HashTable::Add( const std::string& str )
     }
     if( firstDeletedIndex >= 0 ) {
         // Перезаписывание на место удаленного элемента
-        hashTable[firstDeletedIndex]->data = str;
-        hashTable[firstDeletedIndex]->isDeleted = false;
+        hashTable[firstDeletedIndex].data = str;
+        hashTable[firstDeletedIndex].isDeleted = false;
     } else {
         // Запись нового элемента
-        hashTable[hashValue] = new TableElement( str );
+//        hashTable[hashValue] = new TableElement( str );
+        hashTable[hashValue] = TableElement( str );
     }
     ++elementsCount;
     return true;
@@ -130,17 +135,16 @@ bool HashTable::Add( const std::string& str )
 void HashTable::rehash()
 {
     size_t newCapacity = capacity * 2;
-    std::vector<TableElement*> newHashTable( newCapacity, nullptr );
+    std::vector<TableElement> newHashTable( newCapacity );
     for( int i = 0; i < capacity; ++i ) {
-        if( hashTable[i] != nullptr ) {
-            if ( hashTable[i]->isDeleted ) {
-                delete hashTable[i];
-            } else {
-                size_t hashValue = hash1( hashTable[i]->data, newCapacity );
-                size_t hashValue2 = hash2( hashTable[i]->data, newCapacity );
+        if( !hashTable[i].isEmpty ) {
+            if( !hashTable[i].isDeleted )
+            {
+                size_t hashValue = hash1( hashTable[i].data, newCapacity );
+                size_t hashValue2 = hash2( hashTable[i].data, newCapacity );
 
                 int j = 0;
-                while( newHashTable[hashValue] != nullptr && j < newCapacity ) {
+                while( !newHashTable[hashValue].isEmpty && j < newCapacity ) {
                     hashValue = ( hashValue + hashValue2 ) % newCapacity;
                     ++j;
                 }
@@ -159,8 +163,8 @@ bool HashTable::Has( const std::string& str )
     size_t hashValue2 = hash2( str, capacity );
 
     int i = 0;
-    while( hashTable[hashValue] != nullptr && i < capacity ) {
-        if( hashTable[hashValue]->data == str && !hashTable[hashValue]->isDeleted ) {
+    while( !hashTable[hashValue].isEmpty && i < capacity ) {
+        if( hashTable[hashValue].data == str && !hashTable[hashValue].isDeleted ) {
             return true;
         }
         hashValue = ( hashValue + hashValue2 ) % capacity;
@@ -176,9 +180,9 @@ bool HashTable::Remove( const std::string& str )
     size_t hashValue2 = hash2( str, capacity );
 
     int i = 0;
-    while( hashTable[hashValue] != nullptr && i < capacity ) {
-        if( hashTable[hashValue]->data == str && !hashTable[hashValue]->isDeleted ) {
-            hashTable[hashValue]->isDeleted = true;
+    while( !hashTable[hashValue].isEmpty && i < capacity ) {
+        if( hashTable[hashValue].data == str && !hashTable[hashValue].isDeleted ) {
+            hashTable[hashValue].isDeleted = true;
             --elementsCount;
             return true;
         }
